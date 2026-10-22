@@ -1,0 +1,7 @@
+INFO 2026-10-22T20:45:21 REGISTER user='reviewer_test' currency='1234' amount=N/A result=OK
+INFO 2026-10-22T20:46:33 REGISTER user='reviewer' currency='1234' amount=N/A result=OK
+INFO 2026-10-22T20:46:40 LOGIN user='reviewer' currency='1234' amount=N/A result=OK
+INFO 2026-10-22T20:46:48 Starting rates update process
+ERROR 2026-10-22T20:46:50 CoinGecko update failed: РћС€РёР±РєР° РїСЂРё РѕР±СЂР°С‰РµРЅРёРё Рє РІРЅРµС€РЅРµРјСѓ API: РЎР±РѕР№ СЃРµС‚Рё РїСЂРё Р·Р°РїСЂРѕСЃРµ Рє CoinGecko: Expecting value: line 1 column 1 (char 0)
+ERROR 2026-10-22T20:46:53 ExchangeRate-API update failed: РћС€РёР±РєР° РїСЂРё РѕР±СЂР°С‰РµРЅРёРё Рє РІРЅРµС€РЅРµРјСѓ API: ExchangeRate-API РІРµСЂРЅСѓР» СЃС‚Р°С‚СѓСЃ 404
+ERROR 2026-10-22T20:47:06 BUY user='unknown' currency='5.0' amount=N/A result=ERROR error_type=ValueError message='Сначала выполните login'

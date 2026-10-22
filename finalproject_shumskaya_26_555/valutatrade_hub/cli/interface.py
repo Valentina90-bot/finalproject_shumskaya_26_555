@@ -1,5 +1,4 @@
 import sys
-from datetime import datetime
 
 from valutatrade_hub.core import usecases
 from valutatrade_hub.core.currencies import get_currency
@@ -143,9 +142,11 @@ def run_cli():
             cfg = ParserConfig()
             storage = ParserStorage(cfg.RATES_FILE_PATH, cfg.HISTORY_FILE_PATH)
             updater = RatesUpdater(cfg, storage)
-            
+
+            import datetime
+           
             updated = updater.run_update(source_filter=source)
-            timestamp = datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+            timestamp = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%S")
             print(f"Update successful. Total rates updated: {updated}. Last refresh: {timestamp}")
 
         elif command == "show-rates":

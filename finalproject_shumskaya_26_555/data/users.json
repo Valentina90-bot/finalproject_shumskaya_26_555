@@ -1,0 +1,16 @@
+[
+  {
+    "user_id": 1,
+    "username": "reviewer_test",
+    "hashed_password": "fdeb9ff28249f095f6ff43f87c103e65856684bcd910c1de24c4ee94e59f350c",
+    "salt": "759a2545",
+    "registration_date": "2026-10-22T20:45:21.413245"
+  },
+  {
+    "user_id": 2,
+    "username": "reviewer",
+    "hashed_password": "62ab54c0ab5acbae7cde9926ede51f82bc2ffc6f762776309ae72b21b6633108",
+    "salt": "0f66762a",
+    "registration_date": "2026-10-22T20:46:33.778850"
+  }
+]

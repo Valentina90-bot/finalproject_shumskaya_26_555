@@ -1,4 +1,5 @@
 import functools
+
 from valutatrade_hub.logging_config import setup_logging
 
 logger = setup_logging()
@@ -23,7 +24,7 @@ def log_action(action_name: str):
                 return res
             except Exception as e:
                 error_type = e.__class__.__name__
-                logger.error(f"{action_name} user='{username}' currency='{currency_code}' amount={amount} result=ERROR error_type={error_type} message='{str(e)}'")
-                raise e
+                logger.error(f"{action_name} user='{username}' currency='{currency_code}' amount={amount} result=ERROR error_type={error_type} message='{e!s}'")
+                raise
         return wrapper
     return decorator

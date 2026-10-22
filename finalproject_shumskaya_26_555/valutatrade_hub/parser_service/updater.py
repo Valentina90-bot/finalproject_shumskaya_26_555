@@ -1,8 +1,11 @@
 from valutatrade_hub.core.exceptions import ApiRequestError
 from valutatrade_hub.logging_config import setup_logging
+from valutatrade_hub.parser_service.api_clients import (
+    CoinGeckoClient,
+    ExchangeRateApiClient,
+)
 from valutatrade_hub.parser_service.config import ParserConfig
 from valutatrade_hub.parser_service.storage import ParserStorage
-from valutatrade_hub.parser_service.api_clients import CoinGeckoClient, ExchangeRateApiClient
 
 logger = setup_logging()
 
@@ -13,7 +16,7 @@ class RatesUpdater:
         self.coingecko_client = CoinGeckoClient(config)
         self.exchangerate_client = ExchangeRateApiClient(config)
 
-    def run_update(self, source_filter: str = None) -> int:
+    def run_update(self, source_filter: str | None = None) -> int:
         print("INFO: Starting rates update...")
         logger.info("Starting rates update process")
         

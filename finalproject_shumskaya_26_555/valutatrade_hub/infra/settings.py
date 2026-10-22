@@ -1,6 +1,7 @@
 import os
 from typing import Any
 
+
 class SettingsLoader:
     _instance = None
 

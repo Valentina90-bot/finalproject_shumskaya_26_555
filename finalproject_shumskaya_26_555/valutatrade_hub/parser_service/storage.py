@@ -1,6 +1,7 @@
 import json
 import os
-from datetime import datetime
+from datetime import UTC, datetime
+
 
 class ParserStorage:
     def __init__(self, rates_path: str, history_path: str):
@@ -34,7 +35,7 @@ class ParserStorage:
                 return {"pairs": {}, "last_refresh": ""}
 
     def save_rate_entry(self, from_curr: str, to_curr: str, rate: float, source: str):
-        timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        timestamp = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         entry_id = f"{from_curr}_{to_curr}_{timestamp}"
         
         history = self.load_history()

@@ -1,14 +1,16 @@
 from abc import ABC, abstractmethod
+
 from valutatrade_hub.core.exceptions import CurrencyNotFoundError
+
 
 class Currency(ABC):
     def __init__(self, name: str, code: str):
         if not name or not name.strip():
-            raise ValueError("Имя валюты не может быть пустым")
+            raise ValueError("РРјСЏ РІР°Р»СЋС‚С‹ РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РїСѓСЃС‚С‹Рј")
         
         cleaned_code = code.upper().strip()
         if not (2 <= len(cleaned_code) <= 5) or " " in cleaned_code:
-            raise ValueError("Код валюты должен быть длиной от 2 до 5 символов без пробелов")
+            raise ValueError("РљРѕРґ РІР°Р»СЋС‚С‹ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РґР»РёРЅРѕР№ РѕС‚ 2 РґРѕ 5 СЃРёРјРІРѕР»РѕРІ Р±РµР· РїСЂРѕР±РµР»РѕРІ")
             
         self.name = name.strip()
         self.code = cleaned_code
@@ -24,7 +26,7 @@ class FiatCurrency(Currency):
         self.issuing_country = issuing_country.strip()
 
     def get_display_info(self) -> str:
-        return f"[FIAT] {self.code} — {self.name} (Issuing: {self.issuing_country})"
+        return f"[FIAT] {self.code} вЂ” {self.name} (Issuing: {self.issuing_country})"
 
 
 class CryptoCurrency(Currency):
@@ -34,7 +36,7 @@ class CryptoCurrency(Currency):
         self.market_cap = float(market_cap)
 
     def get_display_info(self) -> str:
-        return f"[CRYPTO] {self.code} — {self.name} (Algo: {self.algorithm}, MCAP: {self.market_cap:.2e})"
+        return f"[CRYPTO] {self.code} вЂ” {self.name} (Algo: {self.algorithm}, MCAP: {self.market_cap:.2e})"
 
 
 def get_currency(code: str) -> Currency:

@@ -1,6 +1,8 @@
 import logging
 from logging.handlers import RotatingFileHandler
+
 from valutatrade_hub.infra.settings import SettingsLoader
+
 
 def setup_logging():
     settings = SettingsLoader()

@@ -1,6 +1,8 @@
-import os
 import json
+import os
+
 from valutatrade_hub.infra.settings import SettingsLoader
+
 
 class DatabaseManager:
     _instance = None

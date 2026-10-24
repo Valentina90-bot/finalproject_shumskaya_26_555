@@ -15,6 +15,7 @@ db_manager = DatabaseManager()
 USERS_FILE = "data/users.json"
 PORTFOLIOS_FILE = "data/portfolios.json"
 RATES_FILE = "data/rates.json"
+SESSION_FILE = "data/session.json"  
 
 
 def load_users() -> list:
@@ -31,6 +32,27 @@ def load_portfolios() -> list:
 
 def save_portfolios(portfolios_data: list):
     db_manager.write_json_atomic(PORTFOLIOS_FILE, portfolios_data)
+
+
+def restore_session_if_needed():
+    global CURRENT_USER
+    if CURRENT_USER is None and os.path.exists(SESSION_FILE):
+        try:
+            session_data = db_manager.read_json(SESSION_FILE)
+            user_id = session_data.get("current_user_id")
+            if user_id:
+                users = load_users()
+                u_data = next((u for u in users if u["user_id"] == user_id), None)
+                if u_data:
+                    CURRENT_USER = User(
+                        user_id=u_data["user_id"],
+                        username=u_data["username"],
+                        hashed_password=u_data["hashed_password"],
+                        salt=u_data["salt"],
+                        registration_date=datetime.fromisoformat(u_data["registration_date"]),
+                    )
+        except Exception:
+            pass
 
 
 @log_action("REGISTER")
@@ -60,7 +82,7 @@ def register_user(username: str, password: str) -> str:
     save_users(users)
 
     portfolios = load_portfolios()
-    portfolios.append({"user_id": user_id, "wallets": {}})
+    portfolios.append({"user_id": user_id, "wallets": {"USD": {"currency_code": "USD", "balance": 10000.0}}})
     save_portfolios(portfolios)
 
     return f"Пользователь '{username}' зарегистрирован (id={user_id}). Войдите: login --username {username} --password ****"
@@ -92,10 +114,12 @@ def login_user(username: str, password: str) -> str:
         raise ValueError("Неверный пароль")
 
     CURRENT_USER = user_obj
+    db_manager.write_json_atomic(SESSION_FILE, {"current_user_id": user_obj.user_id})
     return f"Вы вошли как '{user_obj.username}'"
 
 
 def load_current_portfolio() -> Portfolio:
+    restore_session_if_needed()
     if not CURRENT_USER:
         raise ValueError("Сначала выполните login")
 
@@ -156,6 +180,7 @@ def get_exchange_rate(from_curr: str, to_curr: str) -> float:
 
 @log_action("BUY")
 def buy_currency(currency_code: str, amount: float) -> str:
+    restore_session_if_needed()
     if amount <= 0:
         raise ValueError("'amount' должен быть положительным числом")
 
@@ -163,6 +188,17 @@ def buy_currency(currency_code: str, amount: float) -> str:
     portfolio = load_current_portfolio()
 
     rate = get_exchange_rate(currency.code, "USD")
+    cost = amount * rate
+
+    if not portfolio.get_wallet("USD"):
+        portfolio.add_currency("USD")
+        portfolio.get_wallet("USD").deposit(10000.0)
+
+    usd_wallet = portfolio.get_wallet("USD")
+    if usd_wallet.balance < cost:
+        raise InsufficientFundsError(usd_wallet.balance, cost, "USD")
+
+    usd_wallet.withdraw(cost)
 
     if currency.code not in portfolio.wallets:
         portfolio.add_currency(currency.code)
@@ -173,7 +209,6 @@ def buy_currency(currency_code: str, amount: float) -> str:
 
     save_current_portfolio(portfolio)
 
-    cost = amount * rate
     return (
         f"Покупка выполнена: {amount:.4f} {currency.code} по курсу {rate:.2f} USD/{currency.code}\n"
         f"Изменения в портфеле:\n"
@@ -184,6 +219,7 @@ def buy_currency(currency_code: str, amount: float) -> str:
 
 @log_action("SELL")
 def sell_currency(currency_code: str, amount: float) -> str:
+    restore_session_if_needed()
     if amount <= 0:
         raise ValueError("'amount' должен быть положительным числом")
 
@@ -200,13 +236,19 @@ def sell_currency(currency_code: str, amount: float) -> str:
         raise InsufficientFundsError(wallet.balance, amount, currency.code)
 
     rate = get_exchange_rate(currency.code, "USD")
+    revenue = amount * rate
 
     old_balance = wallet.balance
     wallet.withdraw(amount)
 
+    if not portfolio.get_wallet("USD"):
+        portfolio.add_currency("USD")
+    
+    usd_wallet = portfolio.get_wallet("USD")
+    usd_wallet.deposit(revenue)
+
     save_current_portfolio(portfolio)
 
-    revenue = amount * rate
     return (
         f"Продажа выполнена: {amount:.4f} {currency.code} по курсу {rate:.2f} USD/{currency.code}\n"
         f"Изменения в портфеле:\n"

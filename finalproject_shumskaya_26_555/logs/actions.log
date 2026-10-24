@@ -1,2 +1,9 @@
 INFO 2026-10-24T16:27:48 REGISTER user='alice' currency='N/A' amount=N/A result=ERROR error_type='TypeError'
 INFO 2026-10-24T16:29:53 REGISTER user='alice' currency='N/A' amount=N/A result=OK
+INFO 2026-10-24T16:30:58 LOGIN user='alice' currency='N/A' amount=N/A result=OK
+INFO 2026-10-24T16:31:50 LOGIN user='alice' currency='N/A' amount=N/A result=OK
+INFO 2026-10-24T16:31:51 BUY user='unknown' currency='BTC' amount=0.05 result=ERROR error_type='ValueError'
+INFO 2026-10-24T16:35:07 LOGIN user='alice' currency='N/A' amount=N/A result=OK
+INFO 2026-10-24T16:35:38 BUY user='unknown' currency='BTC' amount=0.05 result=ERROR error_type='ValueError'
+INFO 2026-10-24T16:39:26 BUY user='unknown' currency='BTC' amount=0.05 result=ERROR error_type='ValueError'
+INFO 2026-10-24T16:47:16 BUY user='unknown' currency='BTC' amount=0.05 result=OK

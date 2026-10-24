@@ -107,11 +107,10 @@ class Portfolio:
             raise ValueError(f"Кошелек для валюты {code} уже существует!")
         self._wallets[code] = Wallet(currency_code=code)
 
-    def get_wallet(self, currency_code: str) -> Wallet:
+    def get_wallet(self, currency_code: str) -> Wallet | None:
         code = currency_code.upper().strip()
-        if code not in self._wallets:
-            raise ValueError(f"У вас нет кошелька '{code}'.")
-        return self._wallets[code]
+        return self._wallets.get(code)
+
 
     def get_total_value(self, base_currency: str = 'USD') -> float:
         base = base_currency.upper().strip()

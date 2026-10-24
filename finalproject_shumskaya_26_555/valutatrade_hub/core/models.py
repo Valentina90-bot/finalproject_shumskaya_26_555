@@ -1,18 +1,23 @@
 import hashlib
 from datetime import datetime
+from valutatrade_hub.core.exceptions import InsufficientFundsError
 
 
 class User:
     def __init__(self, user_id: int, username: str, hashed_password: str, salt: str, registration_date: str | None = None):
         self._user_id = user_id
+        self._username = None  
         self.username = username 
         self._hashed_password = hashed_password
         self._salt = salt
         
         if registration_date is None:
             self._registration_date = datetime.now()
+        elif isinstance(registration_date, datetime):
+            self._registration_date = registration_date
         else:
             self._registration_date = datetime.fromisoformat(registration_date)
+
 
     @property
     def user_id(self) -> int:
@@ -76,7 +81,7 @@ class Wallet:
         if not isinstance(amount, (int, float)) or amount <= 0:
             raise ValueError("Сумма снятия должна быть положительным числом!")
         if amount > self._balance:
-            raise ValueError("Недостаточно средств!")
+            raise InsufficientFundsError(self._balance, amount, self.currency_code)
         self.balance -= amount
 
     def get_balance_info(self) -> str:
@@ -89,7 +94,7 @@ class Portfolio:
         self._wallets = wallets if wallets is not None else {}
 
     @property
-    def user_id(self) -> int:
+    def user(self) -> int:
         return self._user_id
 
     @property

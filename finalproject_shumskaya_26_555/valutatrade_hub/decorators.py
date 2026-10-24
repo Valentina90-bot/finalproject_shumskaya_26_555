@@ -1,5 +1,4 @@
 import functools
-
 from valutatrade_hub.logging_config import setup_logging
 
 logger = setup_logging()
@@ -12,11 +11,16 @@ def log_action(action_name: str):
             from valutatrade_hub.core import usecases
             if usecases.CURRENT_USER:
                 username = usecases.CURRENT_USER.username
-            elif action_name in ["REGISTER", "LOGIN"] and args:
+            elif action_name in ["REGISTER", "LOGIN"] and len(args) > 0:
                 username = args[0]
 
-            currency_code = kwargs.get("currency_code", args[1] if len(args) > 1 else "N/A")
-            amount = kwargs.get("amount", args[2] if len(args) > 2 else "N/A")
+            currency_code = kwargs.get("currency_code")
+            if not currency_code:
+                currency_code = args[0] if action_name not in ["REGISTER", "LOGIN"] and len(args) > 0 else "N/A"
+
+            amount = kwargs.get("amount")
+            if amount is None:
+                amount = args[1] if action_name not in ["REGISTER", "LOGIN"] and len(args) > 1 else "N/A"
             
             try:
                 res = func(*args, **kwargs)
@@ -24,7 +28,7 @@ def log_action(action_name: str):
                 return res
             except Exception as e:
                 error_type = e.__class__.__name__
-                logger.error(f"{action_name} user='{username}' currency='{currency_code}' amount={amount} result=ERROR error_type={error_type} message='{e!s}'")
+                logger.info(f"{action_name} user='{username}' currency='{currency_code}' amount={amount} result=ERROR error_type='{error_type}'")
                 raise
         return wrapper
     return decorator

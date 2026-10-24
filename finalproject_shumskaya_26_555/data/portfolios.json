@@ -10,5 +10,9 @@
   {
     "user_id": 3,
     "wallets": {}
+  },
+  {
+    "user_id": 4,
+    "wallets": {}
   }
 ]

@@ -19,7 +19,7 @@ class SettingsLoader:
             "rates_file": os.path.join("data", "rates.json"),
             "rates_ttl_seconds": 300,
             "default_base_currency": "USD",
-            "log_file": os.path.join("data", "actions.log"),
+            "log_file": os.path.join("logs", "actions.log"),
             "log_format": "%(levelname)s %(asctime)s %(message)s"
         }
 

@@ -1,3 +1,4 @@
+import os
 import logging
 from logging.handlers import RotatingFileHandler
 
@@ -8,6 +9,10 @@ def setup_logging():
     settings = SettingsLoader()
     log_file = settings.get("log_file")
     log_format = settings.get("log_format")
+    
+    dir_name = os.path.dirname(log_file)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
     
     logger = logging.getLogger("valutatrade")
     logger.setLevel(logging.INFO)

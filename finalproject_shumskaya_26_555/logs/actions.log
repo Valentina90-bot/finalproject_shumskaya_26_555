@@ -1,0 +1,2 @@
+INFO 2026-10-24T16:27:48 REGISTER user='alice' currency='N/A' amount=N/A result=ERROR error_type='TypeError'
+INFO 2026-10-24T16:29:53 REGISTER user='alice' currency='N/A' amount=N/A result=OK

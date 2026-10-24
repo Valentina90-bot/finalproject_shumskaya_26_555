@@ -1,29 +1,36 @@
+import os
+import json
 import secrets
 from datetime import datetime
 
 from valutatrade_hub.core.currencies import get_currency
-from valutatrade_hub.core.exceptions import ApiRequestError, InsufficientFundsError
+from valutatrade_hub.core.exceptions import ApiRequestError, InsufficientFundsError, CurrencyNotFoundError
 from valutatrade_hub.core.models import Portfolio, User, Wallet
 from valutatrade_hub.decorators import log_action
 from valutatrade_hub.infra.database import DatabaseManager
 
 CURRENT_USER = None
+db_manager = DatabaseManager()
+
+USERS_FILE = "data/users.json"
+PORTFOLIOS_FILE = "data/portfolios.json"
+RATES_FILE = "data/rates.json"
 
 
 def load_users() -> list:
-    return DatabaseManager().read_json("users")
+    return db_manager.read_json(USERS_FILE)
 
 
 def save_users(users_data: list):
-    DatabaseManager().write_json("users", users_data)
+    db_manager.write_json_atomic(USERS_FILE, users_data)
 
 
 def load_portfolios() -> list:
-    return DatabaseManager().read_json("portfolios")
+    return db_manager.read_json(PORTFOLIOS_FILE)
 
 
 def save_portfolios(portfolios_data: list):
-    DatabaseManager().write_json("portfolios", portfolios_data)
+    db_manager.write_json_atomic(PORTFOLIOS_FILE, portfolios_data)
 
 
 @log_action("REGISTER")
@@ -38,14 +45,16 @@ def register_user(username: str, password: str) -> str:
 
     user_id = max([u["user_id"] for u in users], default=0) + 1
     salt = secrets.token_hex(4)
-    hashed_password = User.hash_password(password, salt)
+    
+    temp_user = User(user_id, username, "", salt, datetime.now())
+    temp_user.change_password(password)
 
     new_user = {
         "user_id": user_id,
         "username": username,
-        "hashed_password": hashed_password,
+        "hashed_password": temp_user._hashed_password,
         "salt": salt,
-        "registration_date": datetime.now().isoformat(),
+        "registration_date": temp_user.registration_date.isoformat(),
     }
     users.append(new_user)
     save_users(users)
@@ -76,7 +85,7 @@ def login_user(username: str, password: str) -> str:
         username=found_user_data["username"],
         hashed_password=found_user_data["hashed_password"],
         salt=found_user_data["salt"],
-        registration_date=found_user_data["registration_date"],
+        registration_date=datetime.fromisoformat(found_user_data["registration_date"]),
     )
 
     if not user_obj.verify_password(password):
@@ -115,7 +124,7 @@ def save_current_portfolio(portfolio: Portfolio):
         }
 
     for p in portfolios:
-        if p["user_id"] == portfolio.user_id:
+        if p["user_id"] == portfolio.user:
             p["wallets"] = wallets_json
             break
     save_portfolios(portfolios)
@@ -125,18 +134,24 @@ def get_exchange_rate(from_curr: str, to_curr: str) -> float:
     f = get_currency(from_curr).code
     t = get_currency(to_curr).code
 
-    exchange_rates = {
-        "USD": 1.0,
-        "EUR": 1.0786,
-        "BTC": 59337.21,
-        "RUB": 0.01016,
-        "ETH": 3720.00,
-    }
+    if f == t:
+        return 1.0
 
-    if f not in exchange_rates or t not in exchange_rates:
-        raise ApiRequestError(f"Курс {f}→{t} временно недоступен в API")
+    rates_data = db_manager.read_json(RATES_FILE)
+    pairs = rates_data.get("pairs", {})
 
-    return exchange_rates[f] / exchange_rates[t]
+    def get_rate_to_usd(code: str) -> float:
+        if code == "USD":
+            return 1.0
+        pair_key = f"{code}_USD"
+        if pair_key in pairs:
+            return float(pairs[pair_key]["rate"])
+        raise ApiRequestError(f"Курс {code}→USD временно недоступен в кэше. Запустите update-rates.")
+
+    rate_f_usd = get_rate_to_usd(f)
+    rate_t_usd = get_rate_to_usd(t)
+
+    return rate_f_usd / rate_t_usd
 
 
 @log_action("BUY")

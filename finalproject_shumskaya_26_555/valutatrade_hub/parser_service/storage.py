@@ -9,12 +9,15 @@ class ParserStorage:
         self.history_path = history_path
 
     def _atomic_save(self, file_path: str, data: dict | list):
+        dir_name = os.path.dirname(file_path)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
+            
         temp_path = f"{file_path}.tmp"
         with open(temp_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        os.rename(temp_path, file_path)
+            
+        os.replace(temp_path, file_path)
 
     def load_history(self) -> list:
         if not os.path.exists(self.history_path):
@@ -53,6 +56,11 @@ class ParserStorage:
         self._atomic_save(self.history_path, history)
 
         rates_data = self.load_rates()
+        
+        # Защита от KeyError: если структура словаря пустая, создаем ключ pairs
+        if "pairs" not in rates_data:
+            rates_data["pairs"] = {}
+            
         pair_key = f"{from_curr}_{to_curr}"
         rates_data["pairs"][pair_key] = {
             "rate": rate,

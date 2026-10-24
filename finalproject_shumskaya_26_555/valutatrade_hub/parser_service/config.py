@@ -4,10 +4,9 @@ from dataclasses import dataclass, field
 
 @dataclass
 class ParserConfig:
-    EXCHANGERATE_API_KEY: str = os.getenv("EXCHANGERATE_API_KEY", "3b47a9b92e1b14c1f1234567")
-
-    COINGECKO_URL: str = "https://coingecko.com"
-    EXCHANGERATE_API_URL: str = "https://exchangerate-api.com"
+    EXCHANGERATE_API_KEY: str = os.getenv("EXCHANGERATE_API_KEY", "77a10e782c263d15a59f9522")
+    COINGECKO_URL: str = "https://api.coingecko.com/api/v3"
+    EXCHANGERATE_API_URL: str = "https://v6.exchangerate-api.com/v6"
 
     BASE_CURRENCY: str = "USD"
     FIAT_CURRENCIES: tuple = ("EUR", "GBP", "RUB")
@@ -21,4 +20,4 @@ class ParserConfig:
     RATES_FILE_PATH: str = "data/rates.json"
     HISTORY_FILE_PATH: str = "data/exchange_rates.json"
 
-    REQUEST_TIMEOUT: int = 10
+    REQUEST_TIMEOUT: int = 30

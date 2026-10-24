@@ -12,5 +12,12 @@
     "hashed_password": "62ab54c0ab5acbae7cde9926ede51f82bc2ffc6f762776309ae72b21b6633108",
     "salt": "0f66762a",
     "registration_date": "2026-10-22T20:46:33.778850"
+  },
+  {
+    "user_id": 3,
+    "username": "final_reviewer",
+    "hashed_password": "5bab915ba849c483efab9f08b9e1be1dcbdf002be308a60c15dc466c7b4d9f8b",
+    "salt": "a093ffb5",
+    "registration_date": "2026-10-22T21:01:14.505858"
   }
 ]

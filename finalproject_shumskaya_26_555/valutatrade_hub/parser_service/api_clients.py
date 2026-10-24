@@ -1,10 +1,7 @@
 from abc import ABC, abstractmethod
-
 import requests
-
 from valutatrade_hub.core.exceptions import ApiRequestError
 from valutatrade_hub.parser_service.config import ParserConfig
-
 
 class BaseApiClient(ABC):
     def __init__(self, config: ParserConfig):
@@ -14,20 +11,27 @@ class BaseApiClient(ABC):
     def fetch_rates(self) -> dict:
         pass
 
-
 class CoinGeckoClient(BaseApiClient):
     def fetch_rates(self) -> dict:
         ids = ",".join(self.config.CRYPTO_ID_MAP.values())
         params = {"ids": ids, "vs_currencies": self.config.BASE_CURRENCY.lower()}
+        headers = {
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        }
+
+        url = f"{self.config.COINGECKO_URL}/simple/price"
         
         try:
             response = requests.get(
-                self.config.COINGECKO_URL, 
+                url, 
                 params=params, 
+                headers=headers,
                 timeout=self.config.REQUEST_TIMEOUT
             )
+            response.encoding = "utf-8"
             if response.status_code != 200:
-                raise ApiRequestError(f"CoinGecko РІРµСЂРЅСѓР» СЃС‚Р°С‚СѓСЃ {response.status_code}")
+                raise ApiRequestError(f"CoinGecko вернул статус {response.status_code}")
                 
             data = response.json()
             standardized_rates = {}
@@ -40,26 +44,23 @@ class CoinGeckoClient(BaseApiClient):
             return standardized_rates
             
         except requests.exceptions.RequestException as e:
-            raise ApiRequestError(f"РЎР±РѕР№ СЃРµС‚Рё РїСЂРё Р·Р°РїСЂРѕСЃРµ Рє CoinGecko: {e}")
-
+            raise ApiRequestError(f"Сбой сети при запросе к CoinGecko: {e}")
 
 class ExchangeRateApiClient(BaseApiClient):
     def fetch_rates(self) -> dict:
-        if not self.config.EXCHANGERATE_API_KEY:
-            raise ApiRequestError("РћС‚СЃСѓС‚СЃС‚РІСѓРµС‚ API-РєР»СЋС‡ ExchangeRate-API РІ РїРµСЂРµРјРµРЅРЅС‹С… РѕРєСЂСѓР¶РµРЅРёСЏ")
-            
         url = f"{self.config.EXCHANGERATE_API_URL}/{self.config.EXCHANGERATE_API_KEY}/latest/{self.config.BASE_CURRENCY}"
         
         try:
             response = requests.get(url, timeout=self.config.REQUEST_TIMEOUT)
+            response.encoding = "utf-8"
             if response.status_code != 200:
-                raise ApiRequestError(f"ExchangeRate-API РІРµСЂРЅСѓР» СЃС‚Р°С‚СѓСЃ {response.status_code}")
+                raise ApiRequestError(f"ExchangeRate-API вернул статус {response.status_code}. Ответ: {response.text}")
                 
             data = response.json()
             if data.get("result") != "success":
-                raise ApiRequestError(f"ExchangeRate-API СЃРѕРѕР±С‰РёР» РѕР± РѕС€РёР±РєРµ: {data.get('error-type', 'unknown')}")
-                
-            rates = data.get("rates", {})
+                raise ApiRequestError(f"ExchangeRate-API сообщил об ошибке: {data.get('error-type', 'unknown')}")
+
+            rates = data.get("conversion_rates", {})
             standardized_rates = {}
             
             for code in self.config.FIAT_CURRENCIES:
@@ -70,4 +71,4 @@ class ExchangeRateApiClient(BaseApiClient):
             return standardized_rates
             
         except requests.exceptions.RequestException as e:
-            raise ApiRequestError(f"РЎР±РѕР№ СЃРµС‚Рё РїСЂРё Р·Р°РїСЂРѕСЃРµ Рє ExchangeRate-API: {e}")
+            raise ApiRequestError(f"Сбой сети при запросе к ExchangeRate-API: {e}")

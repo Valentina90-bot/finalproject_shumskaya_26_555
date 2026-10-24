@@ -1,5 +1,5 @@
 import sys
-
+import datetime
 from valutatrade_hub.core import usecases
 from valutatrade_hub.core.currencies import get_currency
 from valutatrade_hub.core.exceptions import (
@@ -8,9 +8,9 @@ from valutatrade_hub.core.exceptions import (
     InsufficientFundsError,
 )
 from valutatrade_hub.parser_service.config import ParserConfig
+from valutatrade_hub.parser_service.api_clients import CoinGeckoClient, ExchangeRateApiClient
 from valutatrade_hub.parser_service.storage import ParserStorage
 from valutatrade_hub.parser_service.updater import RatesUpdater
-
 
 def parse_args(args: list) -> dict:
     parsed = {}
@@ -139,13 +139,14 @@ def run_cli():
             source = parsed_args.get("source")
             if source is True:
                 source = None
+            
             cfg = ParserConfig()
             storage = ParserStorage(cfg.RATES_FILE_PATH, cfg.HISTORY_FILE_PATH)
-            updater = RatesUpdater(cfg, storage)
-
-            import datetime
-           
-            updated = updater.run_update(source_filter=source)
+            clients = [CoinGeckoClient(cfg), ExchangeRateApiClient(cfg)]
+            
+            updater = RatesUpdater(clients, storage)
+            updated = updater.run_update(target_source=source)
+            
             timestamp = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%S")
             print(f"Update successful. Total rates updated: {updated}. Last refresh: {timestamp}")
 
